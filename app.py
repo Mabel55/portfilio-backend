@@ -11,25 +11,29 @@ app = Flask(__name__)
 CORS(app)
 
 def get_db_connection():
-    # Print this so we can SEE in the terminal where it connects
-    print("🔌 CONNECTING TO LOCALHOST (YOUR LAPTOP)...")
-    
-    conn = mysql.connector.connect(
-        host='localhost',          # <--- Looking at your laptop
-        user='root',
-        password='1234',           # <--- Your local password
-        database='portfolio_db'
-    )
+    # 1. Check if we are running on Render (Cloud)
+    if os.getenv('RENDER'):
+        print("🌍 CONNECTING TO CLOUD (RENDER)...")
+        conn = mysql.connector.connect(
+            host=os.getenv('DB_HOST'),
+            user=os.getenv('DB_USER'),
+            password=os.getenv('DB_PASSWORD'),
+            database=os.getenv('DB_NAME'),
+            port=int(os.getenv('DB_PORT')),
+            ssl_disabled=True
+        )
+    # 2. If not on Render, use Localhost (Laptop)
+    else:
+        print("💻 CONNECTING TO LOCALHOST...")
+        conn = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='1234',
+            database='portfolio_db'
+        )
     return conn
     
-    # Fallback (Just in case)
-    return mysql.connector.connect(
-        host=os.getenv('DB_HOST'),
-        user=os.getenv('DB_USER'),
-        password=os.getenv('DB_PASSWORD'),
-        database=os.getenv('DB_NAME'),
-        port=int(os.getenv('DB_PORT', 3306))
-    )
+    
 
 # --- ENDPOINTS ---
 
