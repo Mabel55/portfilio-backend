@@ -11,18 +11,16 @@ app = Flask(__name__)
 CORS(app)
 
 def get_db_connection():
-    # Check if DB_URL exists (This works for both Local .env AND Render)
-    if os.getenv('DB_URL'):
-        # Parse the long URL into pieces
-        url = urlparse(os.getenv('DB_URL'))
-        return mysql.connector.connect(
-            host=url.hostname,
-            user=url.username,
-            password=url.password,
-            database=url.path[1:], # Removes the slash
-            port=url.port,
-            ssl_disabled=False
-        )
+    # Print this so we can SEE in the terminal where it connects
+    print("🔌 CONNECTING TO LOCALHOST (YOUR LAPTOP)...")
+    
+    conn = mysql.connector.connect(
+        host='localhost',          # <--- Looking at your laptop
+        user='root',
+        password='1234',           # <--- Your local password
+        database='portfolio_db'
+    )
+    return conn
     
     # Fallback (Just in case)
     return mysql.connector.connect(
@@ -40,7 +38,7 @@ def get_bio():
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute('SELECT * FROM users WHERE id = 1')
+        cursor.execute('SELECT * FROM bio WHERE id =1')
         data = cursor.fetchone()
         cursor.close()
         conn.close()
@@ -73,6 +71,15 @@ def get_skills():
         return jsonify(data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/api/testimonials')
+def get_testimonials():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute('SELECT * FROM testimonials')
+    data = cursor.fetchall()
+    conn.close()
+    return jsonify(data)
 
 @app.route('/api/contact', methods=['POST'])
 def contact_form():
